@@ -328,4 +328,15 @@ for the hardware that made it possible.
 
 MiniMax-H3 by MiniMax; ComfyUI by Comfy Org; Turbo LoRA by larryvrh.
 
-This repo contains a **patch script**, not modified ComfyUI source. ComfyUI is GPL-3.0; the script edits your local copy in place.
+## License
+
+The contents of this repository — the patch script, the helper script, the
+launcher and the example workflows — are released under the
+**[MIT License](LICENSE)**. Use them freely.
+
+**What this repo does *not* contain:** any ComfyUI source. `apply_h3_rdna4_patches.py`
+edits your local copy of `comfy/ldm/minimax/model.py` in place; no modified
+ComfyUI file is redistributed here. ComfyUI itself is **GPL-3.0** and stays
+under its own licence, as do MiniMax-H3 (MiniMax H3 Community Licence) and the
+third-party Turbo LoRA and its node pack (Apache-2.0). Nothing in this repo
+changes the terms of any of those.
