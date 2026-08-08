@@ -1,0 +1,925 @@
+{
+  "id": "minimax-h3-turbo-ref2va-rdna4",
+  "revision": 0,
+  "last_node_id": 18,
+  "last_link_id": 21,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "MarkdownNote",
+      "pos": [
+        -760,
+        40
+      ],
+      "size": [
+        680,
+        940
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "MarkdownNote"
+      },
+      "widgets_values": [
+        "## MiniMax H3 - TURBO + REF2VA (multi-character) - R9700\n\nLocks character appearance to **reference images** instead of prompt wording.\nUp to **9** reference images, 3 reference videos, 3 reference audios.\n\n**Verified: the 4-step Turbo LoRA works on the ref2va checkpoint.**\nAll 259 LoRA modules exist in ref2va and the two checkpoints have identical\nmodule sets. Measured ~50 s for a 5.2 s clip at 640x352, everything cached.\n\n### How to use references\n- `ref_image_0` is wired to the hero (**gator_hero_ref.png**) and is ACTIVE.\n- `ref_image_1` is wired to a second character but ships **MUTED** - select it\n  and press **Ctrl+M** to enable, then pick your villain PNG.\n- `ref_image_2` is an empty slot; drag a LoadImage into it for a third.\n\nIn the prompt, refer to them **in slot order** as `<Picture 1>`, `<Picture 2>`,\n`<Picture 3>`. Slot `ref_image_0` = `<Picture 1>`.\n\nPut reference PNGs in ComfyUI's `input` folder. Grab one from an existing clip:\n`python extract_last_frame.py myclip.mp4 --name villain_ref`\n\n### Keep ref_image_size on \"match\"\n`max` uses a 2048 short edge and the node's own tooltip warns it \"can be several\ntimes slower\" - reference tokens ride through EVERY sampling step.\n\n### Same hard rules as the fl2va turbo workflow\n- **STEPS = 4.** Step-distilled schedule `[1.0, 0.973, 0.9231, 0.8, 0.0]`.\n  8 steps is WORSE, not better.\n- **Turbo Sampler required** - a plain KSamplerSelect will not work.\n- **strength 0.70** here; raise toward 0.85-1.0 for more sharpness/grain.\n\n### Speed\nEach reference image adds tokens that persist through every step, so refs cost\nroughly like extra resolution. 640x352 / 124f with one ref ~ 50 s.\n\nFirst render after any change pays one-time costs:\nnew prompt ~65 s encode, new canvas ~25 s-3 min autotune (cached forever),\nnew checkpoint ~50 s disk load. Iterating **seed** or **strength** is ~50 s.\n\n### Launch\n`Launch ComfyUI AMD RDNA4.bat`\n"
+      ]
+    },
+    {
+      "id": 2,
+      "type": "UNETLoader",
+      "pos": [
+        20,
+        40
+      ],
+      "size": [
+        420,
+        82
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            1
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "UNETLoader"
+      },
+      "widgets_values": [
+        "minimax_h3_ref2va_pruned_fp8_scaled.safetensors",
+        "default"
+      ]
+    },
+    {
+      "id": 3,
+      "type": "MiniMaxH3TurboLoRA",
+      "pos": [
+        20,
+        170
+      ],
+      "size": [
+        420,
+        106
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 1
+        }
+      ],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            2,
+            3
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "MiniMaxH3TurboLoRA"
+      },
+      "widgets_values": [
+        "minimax_h3_turbo_4step_ema_ckpt850.safetensors",
+        0.7,
+        false
+      ]
+    },
+    {
+      "id": 4,
+      "type": "CLIPLoader",
+      "pos": [
+        20,
+        320
+      ],
+      "size": [
+        420,
+        106
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "CLIP",
+          "type": "CLIP",
+          "links": [
+            4
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CLIPLoader"
+      },
+      "widgets_values": [
+        "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+        "minimax",
+        "default"
+      ]
+    },
+    {
+      "id": 5,
+      "type": "VAELoader",
+      "pos": [
+        20,
+        470
+      ],
+      "size": [
+        420,
+        58
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "VAE",
+          "type": "VAE",
+          "links": [
+            5,
+            17
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VAELoader"
+      },
+      "widgets_values": [
+        "minimax_h3_video_vae_fp16.safetensors"
+      ]
+    },
+    {
+      "id": 6,
+      "type": "VAELoader",
+      "pos": [
+        20,
+        560
+      ],
+      "size": [
+        420,
+        58
+      ],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "VAE",
+          "type": "VAE",
+          "links": [
+            6,
+            18
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VAELoader"
+      },
+      "widgets_values": [
+        "minimax_h3_audio_vae_fp32.safetensors"
+      ]
+    },
+    {
+      "id": 17,
+      "type": "LoadImage",
+      "pos": [
+        20,
+        660
+      ],
+      "size": [
+        400,
+        330
+      ],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            7
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": [],
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoadImage"
+      },
+      "widgets_values": [
+        "gator_hero_ref.png",
+        "image"
+      ],
+      "title": "<Picture 1>  hero  (ACTIVE)"
+    },
+    {
+      "id": 18,
+      "type": "LoadImage",
+      "pos": [
+        450,
+        660
+      ],
+      "size": [
+        400,
+        330
+      ],
+      "flags": {},
+      "order": 7,
+      "mode": 2,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            8
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "MASK",
+          "type": "MASK",
+          "links": [],
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "LoadImage"
+      },
+      "widgets_values": [
+        "gator_hero_ref.png",
+        "image"
+      ],
+      "title": "<Picture 2>  2nd character  (Ctrl+M to enable)"
+    },
+    {
+      "id": 7,
+      "type": "MiniMaxH3ReferenceToVideo",
+      "pos": [
+        490,
+        40
+      ],
+      "size": [
+        520,
+        500
+      ],
+      "flags": {},
+      "order": 8,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "clip",
+          "type": "CLIP",
+          "link": 4
+        },
+        {
+          "name": "vae",
+          "type": "VAE",
+          "link": 5
+        },
+        {
+          "name": "audio_vae",
+          "type": "VAE",
+          "link": 6
+        },
+        {
+          "label": "ref_image_0",
+          "name": "ref_images.ref_image_0",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": 7
+        },
+        {
+          "label": "ref_image_1",
+          "name": "ref_images.ref_image_1",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": 8
+        },
+        {
+          "label": "ref_image_2",
+          "name": "ref_images.ref_image_2",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": null
+        },
+        {
+          "label": "ref_video_0",
+          "name": "ref_videos.ref_video_0",
+          "shape": 7,
+          "type": "IMAGE",
+          "link": null
+        },
+        {
+          "label": "ref_video_audio_0",
+          "name": "ref_video_audios.ref_video_audio_0",
+          "shape": 7,
+          "type": "AUDIO",
+          "link": null
+        },
+        {
+          "label": "ref_audio_0",
+          "name": "ref_audios.ref_audio_0",
+          "shape": 7,
+          "type": "AUDIO",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "positive",
+          "type": "CONDITIONING",
+          "links": [
+            9
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "LATENT",
+          "type": "LATENT",
+          "links": [
+            10
+          ],
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "MiniMaxH3ReferenceToVideo"
+      },
+      "widgets_values": [
+        "Anime cel-shaded action shot, 2D hand-drawn look with bold clean linework, vivid saturated colors, dramatic rim lighting, rain-slick reflections. The alligator warrior from <Picture 1> walks slowly forward down a narrow neon-lit alley at night, steam rising from grates, his crimson scarf trailing behind him.\n\nHe keeps exactly the same design as <Picture 1>: green scales, long scarred snout, amber eyes, crimson scarf, bronze shoulder armor.\n\nSingle continuous shot, slow forward tracking, no cuts. Exactly one alligator.\n\nAudio: steady rain on asphalt, distant city traffic, a low synth drone, wet footsteps. No speech, no dialogue, no narration.",
+        640,
+        352,
+        124,
+        "match"
+      ]
+    },
+    {
+      "id": 8,
+      "type": "BasicGuider",
+      "pos": [
+        1060,
+        40
+      ],
+      "size": [
+        300,
+        62
+      ],
+      "flags": {},
+      "order": 9,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 2
+        },
+        {
+          "name": "conditioning",
+          "type": "CONDITIONING",
+          "link": 9
+        }
+      ],
+      "outputs": [
+        {
+          "name": "GUIDER",
+          "type": "GUIDER",
+          "links": [
+            12
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "BasicGuider"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 9,
+      "type": "RandomNoise",
+      "pos": [
+        1060,
+        140
+      ],
+      "size": [
+        300,
+        82
+      ],
+      "flags": {},
+      "order": 10,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "NOISE",
+          "type": "NOISE",
+          "links": [
+            11
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "RandomNoise"
+      },
+      "widgets_values": [
+        4242,
+        "randomize"
+      ]
+    },
+    {
+      "id": 10,
+      "type": "MiniMaxH3TurboSampler",
+      "pos": [
+        1060,
+        260
+      ],
+      "size": [
+        300,
+        40
+      ],
+      "flags": {},
+      "order": 11,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "SAMPLER",
+          "type": "SAMPLER",
+          "links": [
+            13
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "MiniMaxH3TurboSampler"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 11,
+      "type": "BasicScheduler",
+      "pos": [
+        1060,
+        340
+      ],
+      "size": [
+        300,
+        106
+      ],
+      "flags": {},
+      "order": 12,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 3
+        }
+      ],
+      "outputs": [
+        {
+          "name": "SIGMAS",
+          "type": "SIGMAS",
+          "links": [
+            14
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "BasicScheduler"
+      },
+      "widgets_values": [
+        "simple",
+        4,
+        1.0
+      ]
+    },
+    {
+      "id": 12,
+      "type": "SamplerCustomAdvanced",
+      "pos": [
+        1060,
+        480
+      ],
+      "size": [
+        320,
+        126
+      ],
+      "flags": {},
+      "order": 13,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "noise",
+          "type": "NOISE",
+          "link": 11
+        },
+        {
+          "name": "guider",
+          "type": "GUIDER",
+          "link": 12
+        },
+        {
+          "name": "sampler",
+          "type": "SAMPLER",
+          "link": 13
+        },
+        {
+          "name": "sigmas",
+          "type": "SIGMAS",
+          "link": 14
+        },
+        {
+          "name": "latent_image",
+          "type": "LATENT",
+          "link": 10
+        }
+      ],
+      "outputs": [
+        {
+          "name": "output",
+          "type": "LATENT",
+          "links": [
+            15,
+            16
+          ],
+          "slot_index": 0
+        },
+        {
+          "name": "denoised_output",
+          "type": "LATENT",
+          "links": [],
+          "slot_index": 1
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "SamplerCustomAdvanced"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 13,
+      "type": "VAEDecode",
+      "pos": [
+        1420,
+        40
+      ],
+      "size": [
+        280,
+        62
+      ],
+      "flags": {},
+      "order": 14,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "samples",
+          "type": "LATENT",
+          "link": 15
+        },
+        {
+          "name": "vae",
+          "type": "VAE",
+          "link": 17
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            19
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VAEDecode"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 14,
+      "type": "VAEDecodeAudio",
+      "pos": [
+        1420,
+        140
+      ],
+      "size": [
+        280,
+        62
+      ],
+      "flags": {},
+      "order": 15,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "samples",
+          "type": "LATENT",
+          "link": 16
+        },
+        {
+          "name": "vae",
+          "type": "VAE",
+          "link": 18
+        }
+      ],
+      "outputs": [
+        {
+          "name": "AUDIO",
+          "type": "AUDIO",
+          "links": [
+            20
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VAEDecodeAudio"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 15,
+      "type": "CreateVideo",
+      "pos": [
+        1420,
+        240
+      ],
+      "size": [
+        280,
+        82
+      ],
+      "flags": {},
+      "order": 16,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 19
+        },
+        {
+          "name": "audio",
+          "type": "AUDIO",
+          "link": 20
+        }
+      ],
+      "outputs": [
+        {
+          "name": "VIDEO",
+          "type": "VIDEO",
+          "links": [
+            21
+          ],
+          "slot_index": 0
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "CreateVideo"
+      },
+      "widgets_values": [
+        24,
+        8
+      ]
+    },
+    {
+      "id": 16,
+      "type": "SaveVideo",
+      "pos": [
+        1420,
+        360
+      ],
+      "size": [
+        400,
+        420
+      ],
+      "flags": {},
+      "order": 17,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "video",
+          "type": "VIDEO",
+          "link": 21
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "SaveVideo"
+      },
+      "widgets_values": [
+        "video/H3_ref2va_turbo",
+        "auto",
+        "auto"
+      ]
+    }
+  ],
+  "links": [
+    [
+      1,
+      2,
+      0,
+      3,
+      0,
+      "MODEL"
+    ],
+    [
+      2,
+      3,
+      0,
+      8,
+      0,
+      "MODEL"
+    ],
+    [
+      3,
+      3,
+      0,
+      11,
+      0,
+      "MODEL"
+    ],
+    [
+      4,
+      4,
+      0,
+      7,
+      0,
+      "CLIP"
+    ],
+    [
+      5,
+      5,
+      0,
+      7,
+      1,
+      "VAE"
+    ],
+    [
+      6,
+      6,
+      0,
+      7,
+      2,
+      "VAE"
+    ],
+    [
+      7,
+      17,
+      0,
+      7,
+      3,
+      "IMAGE"
+    ],
+    [
+      8,
+      18,
+      0,
+      7,
+      4,
+      "IMAGE"
+    ],
+    [
+      9,
+      7,
+      0,
+      8,
+      1,
+      "CONDITIONING"
+    ],
+    [
+      10,
+      7,
+      1,
+      12,
+      4,
+      "LATENT"
+    ],
+    [
+      11,
+      9,
+      0,
+      12,
+      0,
+      "NOISE"
+    ],
+    [
+      12,
+      8,
+      0,
+      12,
+      1,
+      "GUIDER"
+    ],
+    [
+      13,
+      10,
+      0,
+      12,
+      2,
+      "SAMPLER"
+    ],
+    [
+      14,
+      11,
+      0,
+      12,
+      3,
+      "SIGMAS"
+    ],
+    [
+      15,
+      12,
+      0,
+      13,
+      0,
+      "LATENT"
+    ],
+    [
+      16,
+      12,
+      0,
+      14,
+      0,
+      "LATENT"
+    ],
+    [
+      17,
+      5,
+      0,
+      13,
+      1,
+      "VAE"
+    ],
+    [
+      18,
+      6,
+      0,
+      14,
+      1,
+      "VAE"
+    ],
+    [
+      19,
+      13,
+      0,
+      15,
+      0,
+      "IMAGE"
+    ],
+    [
+      20,
+      14,
+      0,
+      15,
+      1,
+      "AUDIO"
+    ],
+    [
+      21,
+      15,
+      0,
+      16,
+      0,
+      "VIDEO"
+    ]
+  ],
+  "groups": [],
+  "config": {},
+  "extra": {},
+  "version": 0.4
+}
