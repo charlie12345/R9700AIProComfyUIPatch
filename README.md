@@ -2,6 +2,34 @@
 
 Make **MiniMax-H3** video generation fast on an **AMD Radeon AI PRO R9700** (gfx1201 / RDNA 4) under Windows.
 
+---
+
+> ## 🙏 Thank you to AMD
+>
+> This work was made possible by the **AMD Ryzen Threadripper 9980X** and the
+> **AMD Radeon AI PRO R9700**. Every measurement, patch and workflow in this
+> repository was developed and benchmarked on that hardware.
+>
+> Thank you to AMD for building silicon that makes local, open-source video
+> generation genuinely practical.
+
+---
+
+> ### ⚠️ Updating ComfyUI removes these patches
+>
+> A ComfyUI update overwrites `comfy/ldm/minimax/model.py` and **silently reverts
+> both patches** — no error, no warning, you just quietly lose the speed.
+> **Re-run the patch script after every ComfyUI update:**
+>
+> ```bash
+> python apply_h3_rdna4_patches.py --comfy-path C:\path\to\ComfyUI
+> ```
+>
+> Not sure whether they're applied? `python apply_h3_rdna4_patches.py --check`
+> See [After a ComfyUI update](#6-after-a-comfyui-update).
+
+---
+
 Two small patches to ComfyUI's H3 model file, plus the launcher settings that matter. Everything here was measured on real renders, not estimated.
 
 | 864×480, 124 frames (5.2 s), 20 steps | time |
@@ -31,7 +59,17 @@ The single biggest win is not a patch at all — it's one launcher flag. See [La
 
 ## 1. Requirements
 
-**Hardware.** Built and measured on a Radeon AI PRO R9700 (gfx1201, 32 GB). Should also help other RDNA 4 (gfx1200/1201) and probably RDNA 3 (gfx1100–1103, gfx1150–1153) cards — comfy-kitchen's HIP backend covers those too, but they are untested here.
+**Hardware.** Built and measured on:
+
+| | |
+|---|---|
+| CPU | **AMD Ryzen Threadripper 9980X** |
+| GPU | **AMD Radeon AI PRO R9700** (gfx1201, 32 GB) |
+| RAM | 128 GB |
+
+Should also help other RDNA 4 (gfx1200/1201) and probably RDNA 3 (gfx1100–1103, gfx1150–1153) cards — comfy-kitchen's HIP backend covers those too, but they are untested here.
+
+The 32 GB of VRAM is load-bearing for the tuning numbers: several findings below (the token budget, the `--disable-smart-memory` cliff) are consequences of a 20 GB model and a 14.6 GB text encoder not fitting together in 32 GB.
 
 **Software.** The versions this was measured against:
 
@@ -284,7 +322,10 @@ Restores `model.py` from the `.orig-backup` written on first apply. Then restart
 
 ## Credits
 
-Patches and measurements by the repo owner, developed against ComfyUI 0.30.0.
+Patches and measurements by the repo owner, developed against ComfyUI 0.30.0 on an
+**AMD Ryzen Threadripper 9980X** and **AMD Radeon AI PRO R9700** — with thanks to AMD
+for the hardware that made it possible.
+
 MiniMax-H3 by MiniMax; ComfyUI by Comfy Org; Turbo LoRA by larryvrh.
 
 This repo contains a **patch script**, not modified ComfyUI source. ComfyUI is GPL-3.0; the script edits your local copy in place.
