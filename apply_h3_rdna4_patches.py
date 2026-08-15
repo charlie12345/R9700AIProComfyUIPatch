@@ -140,12 +140,19 @@ NEW_ATTN = """        out = None
         # Only worth it on the long packed sequence. The 2 token-refiner layers
         # run a few hundred text tokens, where the win is nil and autotuning a
         # separate kernel per shape costs more than it saves.
-        flex = _flex_attention_fn() if q.shape[2] >= FLEX_MIN_SEQ else None
+        def _unwrap(t):
+            # torch.Tensor on ComfyUI < v0.32; AttentionTensorContainer on
+            # v0.32+ (comfy/ldm/modules/attention.py). .peek() reads without
+            # consuming, so the container stays valid for the
+            # optimized_attention() fallback below if flex_attention raises.
+            return t.peek() if hasattr(t, "peek") else t
+        flex = (_flex_attention_fn()
+                if _unwrap(q).shape[2] >= FLEX_MIN_SEQ else None)
         if flex is not None:
             try:
                 # no .contiguous(): q/k/v are strided views of the packed qkv
                 # buffer and copying them is expensive. Inductor handles strides.
-                o = flex(q, k, v)
+                o = flex(_unwrap(q), _unwrap(k), _unwrap(v))
                 # flex returns [1, heads, seq, head_dim]; optimized_attention
                 # hands back [1, seq, heads*head_dim] already flattened.
                 out = o.transpose(1, 2).reshape(1, o.shape[2], self.heads * self.head_dim)
